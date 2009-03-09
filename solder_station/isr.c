@@ -53,7 +53,6 @@ ISR(TIMER0_OVF_vect)
 		if (! display_setpoint)
 		{
 			// setpoint display timeout back to displaying temperature
-			//led_print(temperature,0);
 			if (power)
 			{
 				led_print(temperature,(power/86)+1);

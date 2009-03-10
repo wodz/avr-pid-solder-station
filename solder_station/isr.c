@@ -41,14 +41,14 @@ ISR(TIMER0_OVF_vect)
 	setpoint_read >>= 1;
 	setpoint_read = moving_average(&filter_s,setpoint_read,8);
 	//setpoint_read = ((setpoint_read*88)/128)+100;	//scale up result and avoid overflow
-	//setpoint_read = ((setpoint_read*105)/128);
-	setpoint_read = (uint16_t)(((uint32_t)setpoint_read*450)/511);
+	setpoint_read = ((setpoint_read*105)/128);
+
 
 	if (setpoint != setpoint_read)
 	{
 		// setpoint has been changed
 		display_setpoint = 50; // hold display of setpoint for about 5s
-		setpoint = setpoint_read;
+		setpoint = (uint16_t)setpoint_read;
 		led_print(setpoint,0);
 	}
 

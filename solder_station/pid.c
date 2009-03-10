@@ -16,7 +16,7 @@ uint16_t pid(uint16_t setpoint, uint16_t temperature, pid_t *pid_s)
 	pid_s->errors[pid_s->index & MASK] = setpoint - temperature;
 
 	// integrate error
-	pid_s->integral += pid_s->errors[pid_s->index];
+	pid_s->integral += pid_s->errors[pid_s->index & MASK];
 
 	// narrow down integral to prevent windup
 	if (pid_s->integral > INTEGRAL_MAX)

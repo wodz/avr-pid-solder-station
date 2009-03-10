@@ -8,19 +8,22 @@
 #ifndef PID_H_
 #define PID_H_
 
-#define NUMBER_OF_SAMPLES 2  // size must be 2^n
-#define MASK (NUMBER_OF_SAMPLES - 1)
+#define MASK 0x01
 #define INTEGRAL_MAX 511
 #define INTEGRAL_MIN -511
-#define PWM_TOP	511
+#define PID_TOP	511
+#define PID_BOTTOM 0
+
 typedef struct {
 	uint8_t KP;					//proportional term constant 0-255
 	uint8_t KI;					//integral term constant 0-255
 	uint8_t KD;					//differential term constant 0-255
-} pid_struct;
+	uint8_t index;				//errors array index
+	int16_t errors[2];			//errors array
+	int16_t integral;			//integral of the error
+	int16_t derivative;			//derivative of the error
+} pid_t;
 
-pid_struct pid_setup;
-
-uint16_t pid(uint16_t setpoint, uint16_t temperature, pid_struct *pid_setup);
+uint16_t pid(uint16_t setpoint, uint16_t temperature, pid_t *pid_setup);
 
 #endif /* PID_H_ */

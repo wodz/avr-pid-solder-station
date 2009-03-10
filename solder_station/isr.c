@@ -6,27 +6,32 @@
  */
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+
 #include <stdio.h>
 #include <stdint.h>
+
 #include "moving_average.h"
 #include "led_7segment.h"
 #include "adc.h"
 #include "max6675.h"
 #include "pid.h"
 
+#define POWER_SCALE	(PID_TOP/3)+1
+
 volatile uint16_t temperature;				// temperature value read from max6675
 volatile uint16_t setpoint;					// setpoint value read from adc
-volatile uint16_t power;						// regulator output power
+volatile uint16_t power;					// regulator output power
 volatile uint8_t display_setpoint;			// setpoint display delay timer
 //volatile uint8_t thermocouple_ok;			// thermocouple connected - unused
 
 extern uint8_t log_enable;					// should we send log to RS232?
+extern pid_t pid_s;							// pid struct
 
 ISR(TIMER0_OVF_vect)
 {
 // read the setpoint from adc
 
-	static moving_average_struct filter_struct;
+	static movingaverage_t filter_s;
 	uint16_t setpoint_read;
 
 // read 8bit, oversample to get 9bit value than apply moving_average 'low pass' filter
@@ -34,9 +39,10 @@ ISR(TIMER0_OVF_vect)
 
 	setpoint_read = (adc_read8() + adc_read8() + adc_read8() + adc_read8());
 	setpoint_read >>= 1;
-	setpoint_read = moving_average(&filter_struct,setpoint_read,8);
+	setpoint_read = moving_average(&filter_s,setpoint_read,8);
 	//setpoint_read = ((setpoint_read*88)/128)+100;	//scale up result and avoid overflow
-	setpoint_read = ((setpoint_read*105)/128);
+	//setpoint_read = ((setpoint_read*105)/128);
+	setpoint_read = (uint16_t)(((uint32_t)setpoint_read*450)/511);
 
 	if (setpoint != setpoint_read)
 	{
@@ -55,7 +61,7 @@ ISR(TIMER0_OVF_vect)
 			// setpoint display timeout back to displaying temperature
 			if (power)
 			{
-				led_print(temperature,(power/86)+1);
+				led_print(temperature,(power/POWER_SCALE)+1);
 			}
 			else
 			{
@@ -70,7 +76,7 @@ ISR(TIMER2_OVF_vect)
 {
 	uint16_t temperature_read;
 	static uint8_t slow_down;
-	static moving_average_struct filter_struct;
+	static movingaverage_t filter_struct;
 
 	// read temperature from thermocouple
 	// smooth readings with moving average filter
@@ -78,16 +84,16 @@ ISR(TIMER2_OVF_vect)
 	if (slow_down == 0)
 	{
 		temperature_read = read_temperature();
-		slow_down = 240;
+		slow_down = 15;
 
 	// leave out fraction part from readings
 	temperature_read = moving_average(&filter_struct,temperature_read,8)>>2;
-	power = pid(setpoint,temperature,&pid_setup);
+	power = pid(setpoint,temperature,&pid_s);
 	OCR1A = power;	//set PWM fill factor
 	}
 	else
 	{
-		slow_down++;
+		slow_down--;
 		return;
 	}
 
@@ -98,13 +104,13 @@ ISR(TIMER2_OVF_vect)
 
 		if (! display_setpoint)
 		{
-			// if we do not display setpoint currently update temperature display
+			// if we do not display setpoint currently, update temperature display
 
 			// number indicate current temperature
 			// dots indicate applied power
 			if (power)
 			{
-				led_print(temperature,(power/86)+1);
+				led_print(temperature,(power/POWER_SCALE)+1);
 			}
 			else
 			{

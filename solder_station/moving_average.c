@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include "moving_average.h"
 
-int16_t moving_average(moving_average_struct *filter, uint16_t data, uint8_t samples)
+int16_t moving_average(movingaverage_t *filter, uint16_t data, uint8_t samples)
 {
 	uint8_t i;
 	int16_t sum = 0;

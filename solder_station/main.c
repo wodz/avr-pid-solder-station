@@ -12,12 +12,13 @@
  * config
  * save
  *
- * set - sets value of parameter. Available parameters are KP, KI, KD, NUMBER_OF_SAMPLES
- * parameters are in units of 1/16
+ * set - sets value of parameter. Available parameters are KP, KI, KD
  *
  * log - enable (1) or disable (0) logging
  *
  * config - show currently running config (this can be different from saved config)
+ *
+ * eeprom - reads settings stored in eeprom
  *
  * save - store config in eeprom
  */
@@ -45,7 +46,7 @@ uint8_t EEMEM EEMEM_KP;
 uint8_t EEMEM EEMEM_KI;
 uint8_t EEMEM EEMEM_KD;
 
-extern pid_struct pid_setup;
+volatile pid_t pid_s;
 volatile uint8_t log_enable;
 
 int main(void)
@@ -106,18 +107,13 @@ int main(void)
 	TCCR2 |= (1<<CS22)|(1<<CS21)|(1<CS20);	// clk/1024
 	TIMSK |= (1<<TOIE2);					// enable interrupt
 
-	// power regulation
-	// Timer1 Fast PWM 8bit clk/256 ~15Hz with 1MHz clock
-	//TCCR1B |= (1<<WGM12)|(1<<CS12);		// Fast PWM 8bit clk/256
-	//TCCR1A |= (1<<WGM10)|(1<<COM1A1);
-	//OCR1A = 0;							// set value in range 0-255
-	//DDRB |= (1<<PB1);					// setup OC1A as output
-
 	// Timer1 Phase correct PWM 9bit clk/64 ~15Hz with 1MHz clock
+	// In this mode if OCR1A=0 we have truly 0 power applied
 	TCCR1B |= (1<<CS11)|(1<<CS10);
 	TCCR1A |= (1<<COM1A1)|(1<<WGM11);
 	OCR1A = 0;
 	DDRB |= (1<<PB1);
+
 // USART
 
 	// set baudrate
@@ -140,20 +136,20 @@ int main(void)
 
 	// read pid parameters from eeprom
 
-	pid_setup.KP = eeprom_read_byte(&EEMEM_KP);
-	pid_setup.KI = eeprom_read_byte(&EEMEM_KI);
-	pid_setup.KD = eeprom_read_byte(&EEMEM_KD);
+	pid_s.KP = eeprom_read_byte(&EEMEM_KP);
+	pid_s.KI = eeprom_read_byte(&EEMEM_KI);
+	pid_s.KD = eeprom_read_byte(&EEMEM_KD);
 
-	if (pid_setup.KP == 0xff && \
-		pid_setup.KI == 0xff && \
-		pid_setup.KD == 0xff)
+	if (pid_s.KP == 0xff && \
+		pid_s.KI == 0xff && \
+		pid_s.KD == 0xff)
 	{
 		//eeprom is uninitialized - let's fallback to some safe settings
 		// here pure proportional behavior
 		// constants are in units of 1/16
-		pid_setup.KP = 16;
-		pid_setup.KI = 0;
-		pid_setup.KD = 0;
+		pid_s.KP = 1;
+		pid_s.KI = 0;
+		pid_s.KD = 0;
 
 	}
 
@@ -163,9 +159,9 @@ int main(void)
 
 	// Be polite and introduce itself :-)
 	printf_P(STATUS, \
-			 pid_setup.KP, \
-			 pid_setup.KI, \
-			 pid_setup.KD);
+			 pid_s.KP, \
+			 pid_s.KI, \
+			 pid_s.KD);
 	printf_P(OK);
 
 // MAIN LOOP
@@ -182,7 +178,7 @@ int main(void)
 
 				if (tmp < 256 && tmp >= 0)
 				{
-					pid_setup.KP = (uint8_t)tmp;
+					pid_s.KP = (uint8_t)tmp;
 					printf_P(OK);
 				}
 				else
@@ -198,7 +194,7 @@ int main(void)
 
 				if (tmp < 256 && tmp >= 0)
 				{
-					pid_setup.KI = (uint8_t)tmp;
+					pid_s.KI = (uint8_t)tmp;
 					printf_P(OK);
 				}
 				else
@@ -214,7 +210,7 @@ int main(void)
 
 				if (tmp < 256 && tmp >= 0)
 				{
-					pid_setup.KD = (uint8_t)tmp;
+					pid_s.KD = (uint8_t)tmp;
 					printf_P(OK);
 				}
 				else
@@ -241,16 +237,16 @@ int main(void)
 			{
 				cli();
 				eeprom_busy_wait();
-				eeprom_write_byte(&EEMEM_KP, pid_setup.KP);
-				eeprom_write_byte(&EEMEM_KI, pid_setup.KI);
-				eeprom_write_byte(&EEMEM_KD, pid_setup.KD);
+				eeprom_write_byte(&EEMEM_KP, pid_s.KP);
+				eeprom_write_byte(&EEMEM_KI, pid_s.KI);
+				eeprom_write_byte(&EEMEM_KD, pid_s.KD);
 				sei();
 				printf_P(OK);
 			}
 			else if (strncmp_P(line,PSTR("config"),6) == 0)
 			{
 				printf_P(STATUS, \
-							 pid_setup.KP,pid_setup.KI,pid_setup.KD);
+							 pid_s.KP,pid_s.KI,pid_s.KD);
 				printf_P(OK);
 			}
 			else if (strncmp_P(line,PSTR("eeprom"),6) == 0)

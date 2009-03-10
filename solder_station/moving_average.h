@@ -15,8 +15,8 @@ typedef struct {
 	uint8_t index;
 	uint8_t mask;
 	uint8_t init;
-} moving_average_struct;
+} movingaverage_t;
 
-int16_t moving_average(moving_average_struct *filter, uint16_t data, uint8_t samples);
+int16_t moving_average(movingaverage_t *filter, uint16_t data, uint8_t samples);
 
 #endif /* MOVING_AVERAGE_H_ */

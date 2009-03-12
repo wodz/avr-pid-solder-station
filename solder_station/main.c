@@ -146,7 +146,7 @@ int main(void)
 	{
 		//eeprom is uninitialized - let's fallback to some safe settings
 		// here pure proportional behavior
-		// constants are in units of 1/16
+
 		pid_s.KP = 1;
 		pid_s.KI = 0;
 		pid_s.KD = 0;
@@ -176,14 +176,14 @@ int main(void)
 				//set KP n
 				sscanf_P(line,PSTR("set KP %d"),&tmp);
 
-				if (tmp < 256 && tmp >= 0)
+				if (tmp < MAX_PID_CONSTANT && tmp >= 0)
 				{
 					pid_s.KP = (uint8_t)tmp;
 					printf_P(OK);
 				}
 				else
 				{
-					printf_P(PARAM_RANGE_MSG,255);
+					printf_P(PARAM_RANGE_MSG,MAX_PID_CONSTANT);
 				}
 			}
 
@@ -192,14 +192,14 @@ int main(void)
 				//set KI n
 				sscanf_P(line,PSTR("set KI %d"),&tmp);
 
-				if (tmp < 256 && tmp >= 0)
+				if (tmp < MAX_PID_CONSTANT && tmp >= 0)
 				{
 					pid_s.KI = (uint8_t)tmp;
 					printf_P(OK);
 				}
 				else
 				{
-					printf_P(PARAM_RANGE_MSG,255);
+					printf_P(PARAM_RANGE_MSG,MAX_PID_CONSTANT);
 				}
 			}
 
@@ -208,14 +208,14 @@ int main(void)
 				//set KD n
 				sscanf_P(line,PSTR("set KD %d"),&tmp);
 
-				if (tmp < 256 && tmp >= 0)
+				if (tmp < MAX_PID_CONSTANT && tmp >= 0)
 				{
 					pid_s.KD = (uint8_t)tmp;
 					printf_P(OK);
 				}
 				else
 				{
-					printf_P(PARAM_RANGE_MSG,255);
+					printf_P(PARAM_RANGE_MSG,MAX_PID_CONSTANT);
 				}
 			}
 

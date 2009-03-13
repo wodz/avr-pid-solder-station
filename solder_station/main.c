@@ -41,7 +41,7 @@
 #define LINE_SIZE	32				//line buffer size
 #define NOP() __asm__ __volatile__ ("nop")
 
-
+// PID constants stored in eeprom
 uint8_t EEMEM EEMEM_KP;
 uint8_t EEMEM EEMEM_KI;
 uint8_t EEMEM EEMEM_KD;
@@ -55,7 +55,7 @@ int main(void)
 	const char *PARAM_RANGE_MSG = PSTR("Out of range 0-%d\n>");
 	const char *STATUS = PSTR("Solder station WO-1\n\tKP %d\n\tKI %d\n\tKD %d\n");
 	char line[LINE_SIZE]; //line buffer
-	int tmp;
+	int16_t tmp;
 
 	cli();
 

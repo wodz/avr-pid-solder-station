@@ -17,7 +17,7 @@
 #include "pid.h"
 
 #define POWER_SCALE	((PID_TOP/3)+1)
-#define MAX_SETPOINT ((350/4)+1)
+#define MAX_SETPOINT ((450/4)+1)
 #define MAX_ADC_READOUT ((511/4)+1)
 #define SETPOINT_OFFSET 0
 
@@ -43,7 +43,7 @@ ISR(TIMER0_OVF_vect)
 	setpoint_read = (adc_read8() + adc_read8() + adc_read8() + adc_read8());
 	setpoint_read >>= 1;
 	setpoint_read = moving_average(&filter_s,setpoint_read,8);
-	//setpoint_read = ((setpoint_read*88)/128)+100;	//scale up result and avoid overflow
+
 	setpoint_read = (((setpoint_read*MAX_SETPOINT)/MAX_ADC_READOUT)+SETPOINT_OFFSET);
 
 

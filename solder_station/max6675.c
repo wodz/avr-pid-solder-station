@@ -6,6 +6,8 @@
  */
 #include <avr/io.h>
 #include <stdint.h>
+
+#include "hardware.h"
 #include "max6675.h"
 #include "spi.h"
 

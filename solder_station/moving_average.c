@@ -5,6 +5,7 @@
  *      Author: wodz
  */
 #include <stdint.h>
+
 #include "moving_average.h"
 
 int16_t moving_average(movingaverage_t *filter, uint16_t data, uint8_t samples)

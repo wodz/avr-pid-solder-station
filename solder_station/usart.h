@@ -1,6 +1,3 @@
-#define USART_U2X
-#define BAUD 9600UL
-
 #ifdef USART_U2X
 #define UBRRH_VALUE ((((uint32_t)(F_CPU) / ((uint32_t)BAUD * 8UL) - 1)>>8) & 0xFF)
 #define UBRRL_VALUE (((uint32_t)(F_CPU) / ((uint32_t)BAUD * 8UL) - 1) & 0xFF )
@@ -9,7 +6,7 @@
 #define UBRRL_VALUE (((uint32_t)((F_CPU) ) / ((uint32_t)BAUD * 16UL) - 1) & 0xFF )
 #endif
 
-//ring buffers have to be 2^n bytes in size (max 256 as counters are declared as uint8_t)
+//ring buffers have to be 2^n bytes in size (max 128 as counters are declared as uint8_t)
 #define TXBUFSIZE	32
 #define RXBUFSIZE	32
 #define TXMASK		(TXBUFSIZE-1)

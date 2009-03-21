@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "hardware.h"
 #include "spi.h"
 #include "adc.h"
 #include "led_7segment.h"

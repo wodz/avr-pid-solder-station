@@ -1,6 +1,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdio.h>
+
+#include "hardware.h"
 #include "usart.h"
 
 ISR(USART_RXC_vect)
@@ -33,8 +35,8 @@ ISR(USART_UDRE_vect)
 
 int USART_putchar(char c, FILE *fp)
 {
-	//wyslij znak,czekaj jesli bufor jest pelen
-	while((tx_end-tx_start)>TXBUFSIZE-2);
+	//send char or wait if buffer is full
+	while((tx_end-tx_start)>TXBUFSIZE-1);
 
 		TxBuf[tx_end++ & TXMASK] = c;
 

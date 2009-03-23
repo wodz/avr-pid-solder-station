@@ -12,7 +12,7 @@
  * config
  * save
  *
- * set - sets value of parameter. Available parameters are KP, KI, KD
+ * set - sets value of parameter. Available parameters are KP, KI, KD, KT
  *
  * log - enable (1) or disable (0) logging
  *
@@ -46,6 +46,7 @@
 uint8_t EEMEM EEMEM_KP;
 uint8_t EEMEM EEMEM_KI;
 uint8_t EEMEM EEMEM_KD;
+uint8_t EEMEM EEMEM_KT;
 
 volatile pid_t pid_s;
 volatile uint8_t log_enable;
@@ -54,7 +55,7 @@ int main(void)
 {
 	const char *OK = PSTR("OK\n>");
 	const char *PARAM_RANGE_MSG = PSTR("Out of range 0-%d\n>");
-	const char *STATUS = PSTR("Solder station WO-1\n\tKP %d\n\tKI %d\n\tKD %d\n");
+	const char *STATUS = PSTR("Solder station WO-1\n\tKP %d\n\tKI %d\n\tKD %d\nKT %d\n");
 	char line[LINE_SIZE]; //line buffer
 	int16_t tmp;
 
@@ -133,17 +134,19 @@ int main(void)
 
 // GENERAL SETUP
 
-	fdevopen(USART_putchar,USART_getchar);	//setup stdio streams
+	//setup stdio streams
+	fdevopen(USART_putchar,USART_getchar);
 
 	// read pid parameters from eeprom
-
 	pid_s.KP = eeprom_read_byte(&EEMEM_KP);
 	pid_s.KI = eeprom_read_byte(&EEMEM_KI);
 	pid_s.KD = eeprom_read_byte(&EEMEM_KD);
+	pid_s.KT = eeprom_read_byte(&EEMEM_KT);
 
 	if (pid_s.KP == 0xff && \
 		pid_s.KI == 0xff && \
-		pid_s.KD == 0xff)
+		pid_s.KD == 0xff && \
+		pid_s.KT == 0xff)
 	{
 		//eeprom is uninitialized - let's fallback to some safe settings
 		// here pure proportional behavior
@@ -151,6 +154,7 @@ int main(void)
 		pid_s.KP = 1;
 		pid_s.KI = 0;
 		pid_s.KD = 0;
+		pid_s.KT = 30;
 
 	}
 
@@ -162,7 +166,8 @@ int main(void)
 	printf_P(STATUS, \
 			 pid_s.KP, \
 			 pid_s.KI, \
-			 pid_s.KD);
+			 pid_s.KD, \
+			 pid_s.KT);
 	printf_P(OK);
 
 // MAIN LOOP
@@ -220,6 +225,22 @@ int main(void)
 				}
 			}
 
+			else if (strncmp_P(line,PSTR("set KT "),7) == 0)
+			{
+				//set KT n
+				sscanf_P(line,PSTR("set KT %d"),&tmp);
+
+				if (tmp < 255 && tmp >= 0)
+				{
+					pid_s.KT = (uint8_t)tmp;
+					printf_P(OK);
+				}
+				else
+				{
+					printf_P(PARAM_RANGE_MSG,255);
+				}
+			}
+
 			else if (strncmp_P(line,PSTR("log "),3) == 0)
 			{
 				// log 0/1
@@ -241,21 +262,23 @@ int main(void)
 				eeprom_write_byte(&EEMEM_KP, pid_s.KP);
 				eeprom_write_byte(&EEMEM_KI, pid_s.KI);
 				eeprom_write_byte(&EEMEM_KD, pid_s.KD);
+				eeprom_write_byte(&EEMEM_KT, pid_s.KT);
 				sei();
 				printf_P(OK);
 			}
 			else if (strncmp_P(line,PSTR("config"),6) == 0)
 			{
 				printf_P(STATUS, \
-							 pid_s.KP,pid_s.KI,pid_s.KD);
+							 pid_s.KP,pid_s.KI,pid_s.KD,pid_s.KT);
 				printf_P(OK);
 			}
 			else if (strncmp_P(line,PSTR("eeprom"),6) == 0)
 			{
-				printf("KP %d\nKI %d\nKD %d\n", \
+				printf(STATUS, \
 						eeprom_read_byte(&EEMEM_KP), \
 						eeprom_read_byte(&EEMEM_KI), \
-						eeprom_read_byte(&EEMEM_KD));
+						eeprom_read_byte(&EEMEM_KD), \
+						eeprom_read_byte(&EEMEM_KT));
 				printf_P(OK);
 			}
 			else

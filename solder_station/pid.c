@@ -19,7 +19,7 @@ int16_t pid(uint16_t setpoint, uint16_t temperature, pid_t *pid_s)
 		pid_s->derivative = pid_s->errors[pid_s->index & MASK] - pid_s->errors[(pid_s->index-1) & MASK];
 
 	// if we are far away from setpoint use PD otherwise use full PID function
-	if (pid_s->errors[pid_s->index & MASK] > PID_THRESHOLD || pid_s->errors[pid_s->index & MASK] < -PID_THRESHOLD)
+	if (pid_s->errors[pid_s->index & MASK] > pid_s->KT || pid_s->errors[pid_s->index & MASK] < -pid_s->KT)
 	{
 		result = (pid_s->KP*pid_s->errors[pid_s->index & MASK] + pid_s->KD*pid_s->derivative);
 	}

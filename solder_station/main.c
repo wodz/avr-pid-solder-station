@@ -55,7 +55,7 @@ int main(void)
 {
 	const char *OK = PSTR("OK\n>");
 	const char *PARAM_RANGE_MSG = PSTR("Out of range 0-%d\n>");
-	const char *STATUS = PSTR("Solder station WO-1\n\tKP %d\n\tKI %d\n\tKD %d\nKT %d\n");
+	const char *STATUS = PSTR("Solder station WO-1\n\tKP %d\n\tKI %d\n\tKD %d\n\tKT %d\n");
 	char line[LINE_SIZE]; //line buffer
 	int16_t tmp;
 
@@ -148,12 +148,12 @@ int main(void)
 		pid_s.KD == 0xff && \
 		pid_s.KT == 0xff)
 	{
-		//eeprom is uninitialized - let's fallback to some safe settings
-		// here pure proportional behavior
+		// eeprom is uninitialized - let's fallback to some safe settings
+		// This one were taken from my own tunnings
 
-		pid_s.KP = 1;
-		pid_s.KI = 0;
-		pid_s.KD = 0;
+		pid_s.KP = 8;
+		pid_s.KI = 22;
+		pid_s.KD = 4;
 		pid_s.KT = 30;
 
 	}
@@ -274,7 +274,7 @@ int main(void)
 			}
 			else if (strncmp_P(line,PSTR("eeprom"),6) == 0)
 			{
-				printf(STATUS, \
+				printf_P(STATUS, \
 						eeprom_read_byte(&EEMEM_KP), \
 						eeprom_read_byte(&EEMEM_KI), \
 						eeprom_read_byte(&EEMEM_KD), \

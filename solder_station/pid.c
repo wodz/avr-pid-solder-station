@@ -28,20 +28,6 @@ int16_t pid(uint16_t setpoint, uint16_t temperature, pid_t *pid_s)
 		// integrate error
 		pid_s->integral += pid_s->errors[pid_s->index & MASK];
 
-		// narrow down integral to prevent windup
-		// probably this is not needed in current form of regulator function
-		// but I does not make any harm
-
-		if (pid_s->integral > INTEGRAL_MAX)
-		{
-			pid_s->integral = INTEGRAL_MAX;
-		}
-		else if (pid_s->integral < INTEGRAL_MIN)
-		{
-			pid_s->integral = INTEGRAL_MIN;
-		}
-
-
 
 		// PID function
 		result = (pid_s->KP*pid_s->errors[pid_s->index & MASK] + (pid_s->KI*pid_s->integral)/100 + pid_s->KD*pid_s->derivative);

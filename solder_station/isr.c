@@ -42,7 +42,7 @@ ISR(TIMER0_OVF_vect)
 
 	setpoint_read = (adc_read8() + adc_read8() + adc_read8() + adc_read8());
 	setpoint_read >>= 1;
-	setpoint_read = moving_average(&filter_s,setpoint_read,8);
+	setpoint_read = moving_average(&filter_s,setpoint_read,12);
 
 	setpoint_read = (((setpoint_read*MAX_SETPOINT)/MAX_ADC_READOUT)+SETPOINT_OFFSET);
 

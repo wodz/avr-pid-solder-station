@@ -38,11 +38,11 @@ ISR(TIMER0_OVF_vect)
 	uint16_t setpoint_read;
 
 // read 8bit, oversample to get 9bit value than apply moving_average 'low pass' filter
-// and finally scale up result to range from 100 to 450
+// and finally scale up result to range from 0 to 450
 
 	setpoint_read = (adc_read8() + adc_read8() + adc_read8() + adc_read8());
 	setpoint_read >>= 1;
-	setpoint_read = moving_average(&filter_s,setpoint_read,12);
+	setpoint_read = moving_average(&filter_s,setpoint_read,16);
 
 	setpoint_read = (((setpoint_read*MAX_SETPOINT)/MAX_ADC_READOUT)+SETPOINT_OFFSET);
 
